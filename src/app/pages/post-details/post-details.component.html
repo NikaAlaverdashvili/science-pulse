@@ -1,0 +1,114 @@
+@if (post(); as p) {
+  <div class="post-page">
+    <div class="post-hero" [style.background-image]="'url(' + (p.image || defaultImg) + ')'">
+      <div class="post-hero-overlay"></div>
+      <div class="post-hero-content">
+        <span class="category-badge">{{ p.category }}</span>
+        <h1>{{ lang.t(p.titleKa, p.titleEn) }}</h1>
+        <div class="post-meta">
+          <span>✍️ {{ p.authorName }}</span>
+          <span>📅 {{ p.createdAt | date:'MMMM d, y' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="post-layout">
+        <article class="post-content">
+          <p class="post-short-desc">{{ lang.t(p.shortDescKa, p.shortDescEn) }}</p>
+          <div class="post-body">
+            @for (paragraph of lang.t(p.contentKa, p.contentEn).split('\n\n'); track paragraph) {
+              <p>{{ paragraph }}</p>
+            }
+          </div>
+
+          <!-- Like/Dislike -->
+          <div class="reaction-bar">
+            <button class="reaction-btn like" [class.active]="isLiked" (click)="toggleLike()" [disabled]="!auth.isLoggedIn()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              {{ p.likes.length }}
+            </button>
+            <button class="reaction-btn dislike" [class.active]="isDisliked" (click)="toggleDislike()" [disabled]="!auth.isLoggedIn()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(180deg)"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              {{ p.dislikes.length }}
+            </button>
+            @if (!auth.isLoggedIn()) {
+              <span class="reaction-note">{{ lang.t('შესვლა საჭიროა', 'Login to react') }}</span>
+            }
+          </div>
+        </article>
+
+        <aside class="post-sidebar">
+          <div class="sidebar-card">
+            <h4>{{ lang.t('სტატიის ინფო', 'Article Info') }}</h4>
+            <div class="info-row"><span>{{ lang.t('ავტორი', 'Author') }}</span><strong>{{ p.authorName }}</strong></div>
+            <div class="info-row"><span>{{ lang.t('კატეგორია', 'Category') }}</span><strong>{{ p.category }}</strong></div>
+            <div class="info-row"><span>{{ lang.t('თარიღი', 'Date') }}</span><strong>{{ p.createdAt | date:'MMM d, y' }}</strong></div>
+            <div class="info-row"><span>👍</span><strong>{{ p.likes.length }}</strong></div>
+            <div class="info-row"><span>👎</span><strong>{{ p.dislikes.length }}</strong></div>
+          </div>
+          <a routerLink="/news" class="back-btn">← {{ lang.t('უკან', 'Back to News') }}</a>
+        </aside>
+      </div>
+
+      <!-- Comments -->
+      <section class="comments-section">
+        <h2>{{ lang.t('კომენტარები', 'Comments') }} ({{ comments().length }})</h2>
+
+        @if (auth.isLoggedIn()) {
+          <div class="comment-form">
+            <div class="comment-avatar">
+              @if (auth.currentUser()?.profileImage) {
+                <img [src]="auth.currentUser()!.profileImage" alt="avatar"/>
+              } @else {
+                <span>{{ auth.currentUser()?.firstName?.[0] }}</span>
+              }
+            </div>
+            <div class="comment-input-wrap">
+              <textarea [(ngModel)]="newComment" [placeholder]="lang.t('კომენტარის დაწერა...', 'Write a comment...')" rows="3"></textarea>
+              <button class="submit-btn" (click)="submitComment()" [disabled]="!newComment.trim()">
+                {{ lang.t('გაგზავნა', 'Post Comment') }}
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="login-prompt">
+            <p>{{ lang.t('კომენტარისთვის', 'To comment,') }} <a routerLink="/login">{{ lang.t('შედი', 'login') }}</a> {{ lang.t('ან', 'or') }} <a routerLink="/register">{{ lang.t('დარეგისტრირდი', 'register') }}</a>.</p>
+          </div>
+        }
+
+        <div class="comments-list">
+          @for (comment of comments(); track comment.id) {
+            <div class="comment-item">
+              <div class="comment-avatar">
+                @if (comment.userImage) {
+                  <img [src]="comment.userImage" alt="avatar"/>
+                } @else {
+                  <span>{{ comment.userName[0] }}</span>
+                }
+              </div>
+              <div class="comment-body">
+                <div class="comment-header">
+                  <strong>{{ comment.userName }}</strong>
+                  <span>{{ comment.createdAt | date:'MMM d, y, h:mm a' }}</span>
+                  @if (canDeleteComment(comment)) {
+                    <button class="delete-btn" (click)="deleteComment(comment.id)">🗑️</button>
+                  }
+                </div>
+                <p>{{ comment.text }}</p>
+              </div>
+            </div>
+          }
+          @if (comments().length === 0) {
+            <div class="empty-comments">{{ lang.t('კომენტარები არ არის.', 'No comments yet. Be the first!') }}</div>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+} @else {
+  <div class="not-found">
+    <h2>{{ lang.t('სტატია ვერ მოიძებნა', 'Post not found') }}</h2>
+    <a routerLink="/news">← {{ lang.t('უკან', 'Back') }}</a>
+  </div>
+}

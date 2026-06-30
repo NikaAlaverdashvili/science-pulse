@@ -1,0 +1,132 @@
+<div class="admin-page">
+  <div class="admin-header">
+    <div class="container">
+      <h1>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        {{ lang.t('ადმინ პანელი', 'Admin Dashboard') }}
+      </h1>
+      <p>{{ lang.t('მოგესალმებით,', 'Welcome,') }} {{ auth.currentUser()?.firstName }}</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">📰</div>
+        <div class="stat-info">
+          <span class="stat-num">{{ postService.posts().length }}</span>
+          <span class="stat-label">{{ lang.t('სტატია', 'Posts') }}</span>
+        </div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon">🧠</div>
+        <div class="stat-info">
+          <span class="stat-num">{{ quizService.quizzes().length }}</span>
+          <span class="stat-label">{{ lang.t('ვიქტორინა', 'Quizzes') }}</span>
+        </div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+          <span class="stat-num">{{ totalUsers }}</span>
+          <span class="stat-label">{{ lang.t('მომხმარებელი', 'Users') }}</span>
+        </div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-icon">💬</div>
+        <div class="stat-info">
+          <span class="stat-num">{{ totalComments }}</span>
+          <span class="stat-label">{{ lang.t('კომენტარი', 'Comments') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2>{{ lang.t('სწრაფი მოქმედებები', 'Quick Actions') }}</h2>
+      <div class="actions-grid">
+        <a routerLink="/create-post" class="action-card">
+          <div class="action-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <strong>{{ lang.t('სტატიის შექმნა', 'Create Post') }}</strong>
+          <span>{{ lang.t('ახალი სტატიის გამოქვეყნება', 'Publish a new article') }}</span>
+        </a>
+        <a routerLink="/create-quiz" class="action-card">
+          <div class="action-icon purple">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <strong>{{ lang.t('ვიქტორინის შექმნა', 'Create Quiz') }}</strong>
+          <span>{{ lang.t('ახალი ვიქტორინის შექმნა', 'Build a new quiz') }}</span>
+        </a>
+        @if (auth.isAdmin()) {
+          <a routerLink="/manage-users" class="action-card">
+            <div class="action-icon green">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <strong>{{ lang.t('მომხმარებლები', 'Manage Users') }}</strong>
+            <span>{{ lang.t('უფლებების მართვა', 'Manage permissions') }}</span>
+          </a>
+        }
+        <a routerLink="/news" class="action-card">
+          <div class="action-icon amber">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <strong>{{ lang.t('სიახლეების ნახვა', 'View News') }}</strong>
+          <span>{{ lang.t('საიტის გადახედვა', 'Browse the site') }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent content -->
+    <div class="recent-grid">
+      <!-- Recent Posts -->
+      <div class="recent-card">
+        <div class="recent-header">
+          <h3>{{ lang.t('ბოლო სტატიები', 'Recent Posts') }}</h3>
+          <a routerLink="/create-post" class="add-btn">+ {{ lang.t('ახალი', 'New') }}</a>
+        </div>
+        @if (recentPosts.length > 0) {
+          <div class="recent-list">
+            @for (post of recentPosts; track post.id) {
+              <div class="recent-item">
+                <div class="recent-thumb" [style.background-image]="'url(' + (post.image || '') + ')'"></div>
+                <div class="recent-info">
+                  <a [routerLink]="['/post', post.id]" class="recent-title">{{ lang.t(post.titleKa, post.titleEn) }}</a>
+                  <span class="recent-meta">{{ post.category }} · {{ post.createdAt | date:'MMM d' }} · 👍{{ post.likes.length }}</span>
+                </div>
+                <button class="del-btn" (click)="deletePost(post.id)" title="Delete">🗑️</button>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-recent">{{ lang.t('სტატიები არ არის', 'No posts yet') }}</div>
+        }
+      </div>
+
+      <!-- Recent Comments -->
+      <div class="recent-card">
+        <div class="recent-header">
+          <h3>{{ lang.t('ბოლო კომენტარები', 'Recent Comments') }}</h3>
+        </div>
+        @if (recentComments.length > 0) {
+          <div class="recent-list">
+            @for (comment of recentComments; track comment.id) {
+              <div class="recent-item">
+                <div class="comment-avatar-sm">{{ comment.userName[0] }}</div>
+                <div class="recent-info">
+                  <span class="recent-title">{{ comment.text | slice:0:60 }}{{ comment.text.length > 60 ? '...' : '' }}</span>
+                  <span class="recent-meta">{{ comment.userName }} · {{ comment.createdAt | date:'MMM d' }}</span>
+                </div>
+                <button class="del-btn" (click)="deleteComment(comment.id)" title="Delete">🗑️</button>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-recent">{{ lang.t('კომენტარები არ არის', 'No comments yet') }}</div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

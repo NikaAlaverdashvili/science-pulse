@@ -1,0 +1,104 @@
+@if (quiz(); as q) {
+<div class="quiz-page">
+  <!-- Intro -->
+  @if (state() === 'intro') {
+    <div class="quiz-intro">
+      <div class="quiz-cover" [style.background-image]="'url(' + (q.image || defaultImg) + ')'">
+        <div class="cover-overlay"></div>
+      </div>
+      <div class="intro-content">
+        <div class="quiz-badge">{{ q.questions.length }} {{ lang.t('კითხვა', 'Questions') }}</div>
+        <h1>{{ lang.t(q.titleKa, q.titleEn) }}</h1>
+        <p>{{ lang.t(q.descriptionKa, q.descriptionEn) }}</p>
+        <div class="intro-meta">
+          <span>👤 {{ q.authorName }}</span>
+          <span>📅 {{ q.createdAt | date:'MMM d, y' }}</span>
+        </div>
+        <button class="start-btn" (click)="startQuiz()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          {{ lang.t('ვიქტორინის დაწყება', 'Start Quiz') }}
+        </button>
+        <a routerLink="/quizzes" class="back-link">← {{ lang.t('უკან', 'Back to Quizzes') }}</a>
+      </div>
+    </div>
+  }
+
+  <!-- Playing -->
+  @if (state() === 'playing' && currentQuestion; as question) {
+    <div class="quiz-playing">
+      <div class="quiz-header">
+        <div class="quiz-title-small">{{ lang.t(q.titleKa, q.titleEn) }}</div>
+        <div class="question-counter">{{ currentIdx() + 1 }} / {{ q.questions.length }}</div>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progress"></div>
+      </div>
+
+      <div class="question-card">
+        <div class="question-number">{{ lang.t('კითხვა', 'Question') }} {{ currentIdx() + 1 }}</div>
+        <h2 class="question-text">{{ lang.t(question.textKa, question.textEn) }}</h2>
+
+        <div class="answers-grid">
+          @for (answer of question.answers; track answer.id) {
+            <button class="answer-btn" [class]="getAnswerClass(answer.id)" (click)="selectAnswer(answer.id)" [disabled]="answered()">
+              <span class="answer-label">{{ lang.t(answer.textKa, answer.textEn) }}</span>
+              @if (answered()) {
+                @if (answer.id === question.correctAnswerId) { <span class="icon">✅</span> }
+                @else if (answer.id === selectedAnswer()) { <span class="icon">❌</span> }
+              }
+            </button>
+          }
+        </div>
+
+        @if (answered()) {
+          <div class="answer-feedback" [class.correct]="selectedAnswer() === question.correctAnswerId" [class.wrong]="selectedAnswer() !== question.correctAnswerId">
+            @if (selectedAnswer() === question.correctAnswerId) {
+              <strong>{{ lang.t('სწორია! 🎉', 'Correct! 🎉') }}</strong>
+            } @else {
+              <strong>{{ lang.t('არასწორი! 😔', 'Wrong! 😔') }}</strong>
+              <span>{{ lang.t('სწორი პასუხი:', 'Correct answer:') }} {{ getCorrectAnswerText() }}</span>
+            }
+          </div>
+          <button class="next-btn" (click)="next()">
+            {{ currentIdx() < q.questions.length - 1 ? lang.t('შემდეგი →', 'Next →') : lang.t('შედეგის ნახვა', 'See Result') }}
+          </button>
+        }
+      </div>
+
+      <div class="score-display">{{ lang.t('ქულა:', 'Score:') }} <strong>{{ score() }}</strong> / {{ currentIdx() }}</div>
+    </div>
+  }
+
+  <!-- Result -->
+  @if (state() === 'result') {
+    <div class="quiz-result">
+      <div class="result-card">
+        <div class="result-emoji">
+          @if (score() === q.questions.length) { <span>🏆</span> }
+          @else if (score() >= q.questions.length / 2) { <span>⭐</span> }
+          @else { <span>📚</span> }
+        </div>
+        <h2>{{ lang.t('ვიქტორინა დასრულდა!', 'Quiz Complete!') }}</h2>
+        <div class="final-score">
+          <span class="score-num">{{ score() }}</span>
+          <span class="score-total">/ {{ q.questions.length }}</span>
+        </div>
+        <div class="score-percent">{{ (score() / q.questions.length * 100).toFixed(0) }}%</div>
+        <p class="result-message">{{ resultMessage }}</p>
+        <div class="result-actions">
+          <button class="start-btn" (click)="restart()">
+            {{ lang.t('თავიდან', 'Try Again') }}
+          </button>
+          <a routerLink="/quizzes" class="back-link">{{ lang.t('სხვა ვიქტორინები', 'More Quizzes') }}</a>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+} @else {
+  <div class="not-found">
+    <h2>{{ lang.t('ვიქტორინა ვერ მოიძებნა', 'Quiz not found') }}</h2>
+    <a routerLink="/quizzes">← {{ lang.t('უკან', 'Back') }}</a>
+  </div>
+}

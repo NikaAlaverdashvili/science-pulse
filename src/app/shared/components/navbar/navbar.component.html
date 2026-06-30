@@ -1,0 +1,93 @@
+<nav class="navbar" [class.scrolled]="scrolled()">
+  <div class="nav-container">
+    <!-- Logo -->
+    <a routerLink="/" class="logo" (click)="closeMenu()">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+        <circle cx="18" cy="18" r="16" stroke="#2563EB" stroke-width="1.5"/>
+        <ellipse cx="18" cy="18" rx="16" ry="6" stroke="#2563EB" stroke-width="1.5"/>
+        <polyline points="10,18 14,14 18,22 22,12 26,18" stroke="#3B82F6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="11" cy="9" r="1.5" fill="#3B82F6"/>
+        <circle cx="25" cy="27" r="1.5" fill="#2563EB"/>
+        <path d="M8 6 L9 8 L8 10 L7 8 Z" fill="#60A5FA"/>
+      </svg>
+      <span class="logo-text">SCIENCE <span class="accent">PULSE</span></span>
+    </a>
+
+    <!-- Desktop Nav -->
+    <ul class="nav-links">
+      <li><a routerLink="/news" routerLinkActive="active">{{ lang.t('სიახლეები', 'News') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Space'}" routerLinkActive="active">{{ lang.t('კოსმოსი', 'Space') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Technology'}" routerLinkActive="active">{{ lang.t('ტექნოლოგია', 'Technology') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Health'}" routerLinkActive="active">{{ lang.t('ჯანმრთელობა', 'Health') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Environment'}" routerLinkActive="active">{{ lang.t('გარემო', 'Environment') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Physics'}" routerLinkActive="active">{{ lang.t('ფიზიკა', 'Physics') }}</a></li>
+      <li><a routerLink="/quizzes" routerLinkActive="active">{{ lang.t('ვიქტორინა', 'Quizzes') }}</a></li>
+      <li><a routerLink="/about" routerLinkActive="active">{{ lang.t('ჩვენს შესახებ', 'About') }}</a></li>
+      <li><a routerLink="/contacts" routerLinkActive="active">{{ lang.t('კონტაქტი', 'Contacts') }}</a></li>
+    </ul>
+
+    <!-- Right Controls -->
+    <div class="nav-right">
+      <!-- Language Switcher -->
+      <div class="lang-switcher">
+        <button [class.active]="lang.lang() === 'ka'" (click)="setLang('ka')">KA</button>
+        <span class="divider">|</span>
+        <button [class.active]="lang.lang() === 'en'" (click)="setLang('en')">EN</button>
+      </div>
+
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/profile" class="btn-profile">
+          @if (auth.currentUser()?.profileImage) {
+            <img [src]="auth.currentUser()!.profileImage" alt="profile" class="profile-img"/>
+          } @else {
+            <span class="profile-initials">{{ auth.currentUser()?.firstName?.[0] }}{{ auth.currentUser()?.lastName?.[0] }}</span>
+          }
+        </a>
+        @if (auth.isCreator()) {
+          <a routerLink="/admin" class="btn-admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            {{ lang.t('ადმინი', 'Admin') }}
+          </a>
+        }
+        <button class="btn-logout" (click)="logout()">{{ lang.t('გასვლა', 'Logout') }}</button>
+      } @else {
+        <a routerLink="/login" class="btn-login">{{ lang.t('შესვლა', 'Login') }}</a>
+        <a routerLink="/register" class="btn-register">{{ lang.t('რეგისტრაცია', 'Register') }}</a>
+      }
+
+      <!-- Hamburger -->
+      <button class="hamburger" (click)="toggleMenu()" [class.open]="menuOpen()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" [class.open]="menuOpen()">
+    <ul>
+      <li><a routerLink="/news" (click)="closeMenu()">{{ lang.t('სიახლეები', 'News') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Space'}" (click)="closeMenu()">{{ lang.t('კოსმოსი', 'Space') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Technology'}" (click)="closeMenu()">{{ lang.t('ტექნოლოგია', 'Technology') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Health'}" (click)="closeMenu()">{{ lang.t('ჯანმრთელობა', 'Health') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Environment'}" (click)="closeMenu()">{{ lang.t('გარემო', 'Environment') }}</a></li>
+      <li><a routerLink="/news" [queryParams]="{cat:'Physics'}" (click)="closeMenu()">{{ lang.t('ფიზიკა', 'Physics') }}</a></li>
+      <li><a routerLink="/quizzes" (click)="closeMenu()">{{ lang.t('ვიქტორინა', 'Quizzes') }}</a></li>
+      <li><a routerLink="/about" (click)="closeMenu()">{{ lang.t('ჩვენს შესახებ', 'About') }}</a></li>
+      <li><a routerLink="/contacts" (click)="closeMenu()">{{ lang.t('კონტაქტი', 'Contacts') }}</a></li>
+      @if (auth.isLoggedIn()) {
+        <li><a routerLink="/profile" (click)="closeMenu()">{{ lang.t('პროფილი', 'Profile') }}</a></li>
+        @if (auth.isCreator()) {
+          <li><a routerLink="/admin" (click)="closeMenu()">{{ lang.t('ადმინი', 'Admin') }}</a></li>
+        }
+        <li><button (click)="logout()">{{ lang.t('გასვლა', 'Logout') }}</button></li>
+      } @else {
+        <li><a routerLink="/login" (click)="closeMenu()">{{ lang.t('შესვლა', 'Login') }}</a></li>
+        <li><a routerLink="/register" (click)="closeMenu()">{{ lang.t('რეგისტრაცია', 'Register') }}</a></li>
+      }
+      <li class="mobile-lang">
+        <button [class.active]="lang.lang() === 'ka'" (click)="setLang('ka')">KA</button>
+        <button [class.active]="lang.lang() === 'en'" (click)="setLang('en')">EN</button>
+      </li>
+    </ul>
+  </div>
+</nav>
